@@ -36,8 +36,8 @@ namespace AsposePdfSigning
         }
       }
 
-      // SIgn the certified file - according to "", this should work, but instead the "signature.Sign(signatureFieldName, secondSignature);"
-      // line below throw an exception:
+      // Sign the certified file - according to "https://docs.aspose.com/display/pdfnet/Digitally+sign+PDF+file", this should work, 
+      // but instead the "signature.Sign(signatureFieldName, secondSignature);" line bellow throws the following exception:
       // System.ApplicationException
       // HResult=0x80131600
       // Message=You cannot change this document because it is certified.
