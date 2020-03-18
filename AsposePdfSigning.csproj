@@ -48,7 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsposePdfTest.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>

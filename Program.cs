@@ -12,7 +12,60 @@ namespace AsposePdfSigning
   {
     static void Main(string[] args)
     {
-      // Read source PDF and add a signature field to a copy.
+      //Certify();
+      MultiSign();
+    }
+
+
+    private static void MultiSign()
+    {
+      // Read source PDF and add a signature fields to a copy.
+      string signatureFieldName1 = null;
+      string signatureFieldName2 = null;
+      using (var doc = new Document(GetTestFilePath("test_source_io.pdf")))
+      {
+        var signatureField1 = new SignatureField(doc.Pages.Last(), new Aspose.Pdf.Rectangle(20, 200, 120, 150));
+        doc.Form.Add(signatureField1);
+        signatureFieldName1 = signatureField1.PartialName;
+
+        var signatureField2 = new SignatureField(doc.Pages.Last(), new Aspose.Pdf.Rectangle(20, 250, 120, 200));
+        doc.Form.Add(signatureField2);
+        signatureFieldName2 = signatureField2.PartialName;
+
+        doc.Save(GetTestFilePath("test_source_io_with_fields.pdf"));
+      }
+
+      // First signature.
+      using (var pdfSignature = new PdfFileSignature())
+      {
+        pdfSignature.BindPdf(GetTestFilePath("test_source_io_with_fields.pdf"));
+
+        using (var certificate = LoadSelfSignedCertificate("PaloMraz-SelfSigned-2020.pfx"))
+        {          
+          var externalSignature = new ExternalSignature(certificate);
+          pdfSignature.Sign(signatureFieldName1, externalSignature);
+          pdfSignature.Save(GetTestFilePath("test_source_io_with_fields_signed_1.pdf"));
+        }
+      }
+
+      // Second signature.
+      using (var pdfSignature = new PdfFileSignature())
+      {
+        pdfSignature.BindPdf(GetTestFilePath("test_source_io_with_fields_signed_1.pdf"));
+
+        using (var certificate = LoadSelfSignedCertificate("PaloMraz-SelfSigned-2020-A.pfx"))
+        {
+          var externalSignature = new ExternalSignature(certificate);
+          pdfSignature.Sign(signatureFieldName2, externalSignature);
+          pdfSignature.Save(GetTestFilePath("test_source_io_with_fields_signed_2.pdf"));
+        }
+      }
+    }
+
+
+    private static void Certify()
+    {
+      // Read source PDF and add a signature fields to a copy.
       string signatureFieldName = null;
       using (var doc = new Document(GetTestFilePath("test_source.pdf")))
       {
@@ -25,7 +78,7 @@ namespace AsposePdfSigning
       // Create a certified copy of the file allowing to fill forms and sign the fields.
       using (var signature = new PdfFileSignature())
       {
-        using (var certificate = LoadSelfSignedCertificate())
+        using (var certificate = LoadSelfSignedCertificate("PaloMraz-SelfSigned-2020.pfx"))
         {
           signature.BindPdf(GetTestFilePath("test_source_with_fields.pdf"));
           signature.SignatureAppearance = GetTestFilePath(@"angular.jpg");
@@ -50,7 +103,7 @@ namespace AsposePdfSigning
 
       using (var signature = new PdfFileSignature())
       {
-        using (var certificate = LoadSelfSignedCertificate())
+        using (var certificate = LoadSelfSignedCertificate("PaloMraz-SelfSigned-2020.pfx"))
         {
           signature.BindPdf(GetTestFilePath("test_source_with_fields_certified.pdf"));
           var secondSignature = new ExternalSignature(certificate);
@@ -65,10 +118,11 @@ namespace AsposePdfSigning
       Path.GetFullPath(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), @"..\..\TestFiles\" + fileName));
 
 
-    private static X509Certificate2 LoadSelfSignedCertificate() => 
+    private static X509Certificate2 LoadSelfSignedCertificate(string pfxFileName) => 
       new X509Certificate2(
-       rawData: File.ReadAllBytes(GetTestFilePath("PaloMraz-SelfSigned-2020.pfx")),
+       rawData: File.ReadAllBytes(GetTestFilePath(pfxFileName)),
        password: "1234",
        keyStorageFlags: X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet);
+
   }
 }
